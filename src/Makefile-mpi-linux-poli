@@ -1,0 +1,354 @@
+#
+# Makefile di compilazione 
+#
+# Bonolo Ivan - Maggio 1999
+# Fabrizio De Pellegrin e Mirco Frattini  - Dicembre 1999
+# Ludovico G. Beretta - Marzo 2000
+#
+
+# Dichiarazioni comuni
+VERSION = 075fc
+
+OBJDIR = ../obj-mpi/
+BINDIR = ../bin-mpi/
+
+LIBDIR = ./A_library/
+EIKDIR = ./1_eikonal_mpi/
+DBMDIR = ./2_dbmaker/
+MIGDIR = ./3_migrator_mpi_AVA/
+SMPDIR = ./4_sampler/
+EQLDIR = ./5_equal/
+DBSDIR = ./6_dbswapper/
+RTLDIR = ./7_rototrasl_mpi/
+M2SDIR = ./8_mig2segy/
+INCDIR = ./0_include/
+SEGYDIR  = ./libSEGYpost/
+VARCDIR  = ./libvarc/
+#TIMEDIR = ./9_time/
+
+#FLAG_AVA = -DAVACODE
+FLAG_AVA = 
+
+
+# --------------- Sorgenti -----------------------------
+
+SRC_LIB = $(LIBDIR)A_SEP_header.c  $(LIBDIR)A_parameters.c $(LIBDIR)A_utils.c $(LIBDIR)A_glob_file.c $(SEGYDIR)segyread.c $(SEGYDIR)segywrite.c $(SEGYDIR)swap_fun.c $(VARCDIR)ieee_ibm.c $(SEGYDIR)swap.c
+
+SRC_EIK = $(EIKDIR)1_ampli3d.f $(EIKDIR)1_derivxymem.f $(EIKDIR)1_derivxyvel.f $(EIKDIR)1_iconal3d_mpi.f $(EIKDIR)1_iniz_mpi.f $(EIKDIR)1_interptgt.f $(EIKDIR)1_regrid3d.f $(EIKDIR)1_selez3d.f $(EIKDIR)1_tamp.f $(EIKDIR)1_execute_mpi.f $(EIKDIR)1_execute_mpi.iope.f $(EIKDIR)1_output_mpi.f $(EIKDIR)1_start_mpi.c $(EIKDIR)1_compute_work_mpi.f $(EIKDIR)1_string_mpi.f $(EIKDIR)1_err_and_exit_mpi.c
+
+SRC_DBM = $(DBMDIR)2_execute.f $(DBMDIR)2_reverse.c $(DBMDIR)2_start.c
+
+SRC_MIG = $(MIGDIR)3_ibm2ieee.f $(MIGDIR)3_trovabin_mpi.f $(MIGDIR)3_start_mpi.c  $(MIGDIR)3_prefiltro_mpi.f $(MIGDIR)3_execute_mpi.f $(MIGDIR)3_input_mpi.f $(MIGDIR)3_compute_mpi.tg1.f $(MIGDIR)3_compute_mpi.tg2.f $(MIGDIR)3_compute_mpi.tg3.f $(MIGDIR)3_compute_mpi.tg4.f $(MIGDIR)3_output_mpi.f $(MIGDIR)3_string_mpi.f $(MIGDIR)3_err_and_exit_mpi.c
+
+SRC_SMP = $(SMPDIR)4_execute.f $(SMPDIR)4_start.c
+
+SRC_EQL = $(EQLDIR)5_pesoric.f $(EQLDIR)5_execute.f $(EQLDIR)5_start.c
+
+SRC_DBS = $(DBSDIR)6_reverse.c $(DBSDIR)6_start.c
+
+SRC_RTL = $(RTLDIR)7_rototrasl_mpi.c
+
+SRC_END = $(M2SDIR)8_mig2segy.c 
+
+#SRC_TIME = $(TIMEDIR)time_sgi.c
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+# ALPHA
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+
+# -------------------- Definizioni compilatori --------------------------
+F77 = /usr/local/mpich-1.2.5/bin/mpif77 -lm  -DALPHA  -x f77-cpp-input 
+CC  = /usr/local/mpich-1.2.5/bin/mpicc -lm -static  -DALPHA -Dglob_fopen_=glob_fopen__ -Dglob_fwrite_=glob_fwrite__  -Dglob_fread_=glob_fread__ -Dseph_put_string_=seph_put_string__ -Dseph_put_int_=seph_put_int__ -Dseph_put_real_=seph_put_real__ -Dglob_fseek_=glob_fseek__  -Dglob_fopen_=glob_fopen__ -Dglob_fopen_=glob_fopen__  -Dglob_sizereal4_=glob_sizereal4__  -Dglob_fseek64_=glob_fseek64__  -Dglob_fopen64_=glob_fopen64__   -Dglob_fclose64_=glob_fclose64__ -Dglob_fclose_=glob_fclose__  -Dint_kta_=int_kta__ -Dglob_sizeshortint_=glob_sizeshortint__ -Dexecute_iope_=execute_iope__ -Dglob_feof_=glob_feof__
+LD = ld
+
+INC_DIR = 
+LIB_FPE = 
+LIB_MPI = -lmpe -lmpich
+
+
+# Ottimizzazione solo su Migrator (li' good performance, su eikonal crash codice)
+ULTRA_OPT = 
+
+FLAGS_F77 = -O2 -D_LARGEFILE64_SOURCE -DTEST_DEBUG -DTEST   $(FLAG_AVA)   -ffixed-line-length-none   -malign-double -Mextend -Bstatic $(FLAG_AVA)  -Bstatic
+
+# Provvisorio ! Per avere Migrator sequenziale
+FLAGS_F77_PAR = $(FLAGS_F77)
+
+FLAGS_CC = -DVERSION="\"$(VERSION)\"" -D_LARGEFILE64_SOURCE -DTEST_DEBUG -DTEST 
+
+FLAGS_CC_PAR = $(FLAGS_CC)
+
+# --------------- Definizioni gruppi files -----------------------------
+#OBJTIME = $(OBJDIR)time_sgi.o
+
+OBJLIB = $(OBJDIR)A_utils.o $(OBJDIR)A_parameters.o $(OBJDIR)A_SEP_header.o $(OBJDIR)A_glob_file.o  $(OBJDIR)segyread.o  $(OBJDIR)segywrite.o  $(OBJDIR)swap_fun.o $(OBJDIR)ieee_ibm.o 
+
+OBJEIK1 = $(OBJDIR)1_derivxymem.o $(OBJDIR)1_derivxyvel.o $(OBJDIR)1_iniz_mpi.o $(OBJDIR)1_err_and_exit_mpi.o
+OBJEIK2 = $(OBJDIR)1_tamp.o $(OBJDIR)1_ampli3d.o $(OBJDIR)1_regrid3d.o 
+OBJEIK3 = $(OBJDIR)1_selez3d.o $(OBJDIR)1_interptgt.o $(OBJDIR)1_iconal3d_mpi.o
+OBJEIK4 = $(OBJDIR)1_dataoutput_mpi.o $(OBJDIR)1_execute_mpi.o  $(OBJDIR)1_execute_mpi.iope.o $(OBJDIR)1_start_mpi.o\
+	$(OBJDIR)1_compute_work_mpi.o $(OBJDIR)1_string_mpi.o
+OBJEIK  = $(OBJLIB) $(OBJEIK1) $(OBJEIK2) $(OBJEIK3) $(OBJEIK4) 
+
+OBJDBM1 = $(OBJDIR)2_reverse.o $(OBJDIR)2_execute.o
+OBJDBM2 = $(OBJDIR)2_start.o $(OBJDIR)3_err_and_exit_mpi.o
+OBJDBM  = $(OBJLIB) $(OBJDBM1) $(OBJDBM2)
+
+OBJMIG1 = $(OBJDIR)3_ibm2ieee.o $(OBJDIR)3_prefiltro_mpi.o $(OBJDIR)3_eqtraces.o $(OBJDIR)3_deriv.o $(OBJDIR)3_readdbfile.o
+OBJMIG2 = $(OBJDIR)3_trovabin_mpi.o $(OBJDIR)3_execute_mpi.o $(OBJDIR)3_firstdepth.o
+OBJMIG3 = $(OBJDIR)3_start_mpi.o $(OBJDIR)3_err_and_exit_mpi.o $(OBJDIR)swap.o
+OBJMIG4 = $(OBJDIR)3_input_mpi.o $(OBJDIR)3_output_mpi.o  $(OBJDIR)3_string_mpi.o
+OBJMIG5 = $(OBJDIR)3_compute_mpi.tg1.o $(OBJDIR)3_compute_mpi.tg2.o $(OBJDIR)3_compute_mpi.tg3.o $(OBJDIR)3_compute_mpi.tg4.o
+OBJMIG  = $(OBJLIB) $(OBJMIG1) $(OBJMIG2) $(OBJMIG3) $(OBJMIG4) $(OBJMIG5)
+OBJSMP  = $(OBJLIB) $(OBJDIR)4_execute.o $(OBJDIR)4_start.o $(OBJDIR)3_err_and_exit_mpi.o
+
+OBJEQL1 = $(OBJDIR)5_pesoric.o $(OBJDIR)5_execute.o $(OBJDIR)5_start.o $(OBJDIR)3_err_and_exit_mpi.o
+OBJEQL  = $(OBJLIB) $(OBJEQL1)
+
+OBJSWP  = $(OBJLIB) $(OBJDIR)6_reverse.o $(OBJDIR)6_start.o $(OBJDIR)3_err_and_exit_mpi.o
+
+OBJRTL  = $(OBJLIB) $(OBJDIR)7_rototrasl_mpi.o $(OBJDIR)3_err_and_exit_mpi.o
+
+OBJEND  = $(OBJLIB) $(OBJDIR)8_mig2segy.o $(OBJDIR)3_err_and_exit_mpi.o
+
+#------------ PROGRAMMA ESEGUIBILE --------------------------------------
+all : sampler.x eikonal_mpi.x dbmaker.x migrator_mpi.x equal.x dbswapper.x rototrasl.x mig2segy.x
+
+eikonal_mpi.x : $(OBJEIK) $(SRC_EIK)
+	$(F77) $(FLAGS_F77) $(OBJEIK) $(LIB_FPE) $(LIB_MPI) -o  $(OBJDIR)$@
+#	$(CC) $(FLAGS_F77) $(OBJEIK) $(LIB_FPE) $(LIB_MPI) -o  $(OBJDIR)$@	
+	cp $(OBJDIR)eikonal_mpi.x $(BINDIR)eikonal_mpi_$(VERSION)_NewOut.x
+
+dbmaker.x : $(OBJDBM) $(SRC_DBM)
+	$(F77) $(FLAGS_F77) $(OBJDBM) $(LIB_FPE) -o  $(OBJDIR)$@
+#	$(CC) $(FLAGS_F77) $(OBJDBM) $(LIB_FPE) -o  $(OBJDIR)$@
+	cp $(OBJDIR)dbmaker.x $(BINDIR)dbmaker_$(VERSION).x
+
+migrator_mpi.x : $(OBJMIG) $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) $(OBJMIG) $(LIB_FPE) $(LIB_MPI) -o  $(OBJDIR)$@
+#	$(CC) $(FLAGS_F77_PAR) $(ULTRA_OPT) $(OBJMIG) $(LIB_FPE) $(LIB_MPI) -o  $(OBJDIR)$@
+	cp $(OBJDIR)migrator_mpi.x $(BINDIR)migrator_mpi_$(VERSION)_6.x
+
+sampler.x : $(OBJSMP) $(SRC_SMP)
+	$(F77) $(FLAGS_F77) $(OBJSMP) $(LIB_FPE) -o  $(OBJDIR)$@ 	
+#	$(CC) $(FLAGS_F77) $(OBJSMP) $(LIB_FPE) -o  $(OBJDIR)$@ 
+	cp $(OBJDIR)sampler.x $(BINDIR)sampler_$(VERSION).x
+
+equal.x : $(OBJEQL) $(SRC_EQL)
+	$(F77) $(FLAGS_F77) $(OBJEQL) $(LIB_FPE) -o  $(OBJDIR)$@
+#	$(CC) $(FLAGS_F77) $(OBJEQL) $(LIB_FPE) -o  $(OBJDIR)$@
+	cp $(OBJDIR)equal.x $(BINDIR)equal_$(VERSION).x
+
+dbswapper.x : $(OBJSWP) $(SRC_DBS)
+	$(F77) $(FLAGS_F77) $(OBJSWP) $(LIB_FPE) -o  $(OBJDIR)$@
+#	$(CC) $(FLAGS_F77)  $(OBJSWP) $(LIB_FPE) -o  $(OBJDIR)$@
+	cp $(OBJDIR)dbswapper.x $(BINDIR)dbswapper_$(VERSION)_zip.x
+
+rototrasl.x : $(OBJRTL) $(SRC_RTL)
+	$(F77) $(FLAGS_F77) $(OBJRTL) $(LIB_FPE) -o $(OBJDIR)$@
+#	$(CC) $(FLAGS_F77) $(OBJRTL) $(LIB_FPE) -o $(OBJDIR)$@
+	cp $(OBJDIR)rototrasl.x $(BINDIR)rototrasl_$(VERSION).clara.x
+
+mig2segy.x : $(OBJEND) $(SRC_END)
+	$(F77) $(FLAGS_F77) $(OBJEND) $(LIB_FPE) -o $(OBJDIR)$@
+#	$(CC) $(FLAGS_F77) $(OBJEND) $(LIB_FPE) -o $(OBJDIR)$@
+	cp $(OBJDIR)mig2segy.x $(BINDIR)mig2segy_$(VERSION).x
+
+#-------------------------- FILE OGGETTO --------------------------------
+# Librerie
+$(OBJDIR)A_utils.o: $(SRC_LIB) 
+	$(CC) $(FLAGS_CC) -c $(LIBDIR)A_utils.c -o $@
+
+$(OBJDIR)A_parameters.o: $(SRC_LIB)
+	$(CC) $(FLAGS_CC) -c $(LIBDIR)A_parameters.c -o $@
+
+$(OBJDIR)A_glob_file.o: $(OBJDIR)A_utils.o $(SRC_LIB)
+	$(CC) $(FLAGS_CC) -c $(LIBDIR)A_glob_file.c -o $@
+
+$(OBJDIR)A_SEP_header.o: $(OBJDIR)A_utils.o $(SRC_LIB)
+	$(CC) $(FLAGS_CC) -c $(LIBDIR)A_SEP_header.c -o $@
+
+$(OBJDIR)segywrite.o: $(SRC_LIB)
+	$(CC) $(FLAGS_CC) -c $(SEGYDIR)segywrite.c -o $@
+
+$(OBJDIR)segyread.o: $(SRC_LIB)
+	$(CC) $(FLAGS_CC) -c $(SEGYDIR)segyread.c -o $@
+
+$(OBJDIR)swap_fun.o: $(SRC_LIB)
+	$(CC) $(FLAGS_CC) -c $(SEGYDIR)swap_fun.c -o $@
+
+$(OBJDIR)ieee_ibm.o: $(SRC_LIB)
+	$(CC) $(FLAGS_CC) -c $(VARCDIR)ieee_ibm.c -o $@
+
+# Iconale_mpi
+$(OBJDIR)1_derivxyvel.o: $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_derivxyvel.f -o $@
+
+$(OBJDIR)1_derivxymem.o: $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_derivxymem.f -o $@
+
+$(OBJDIR)1_iniz_mpi.o : $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_iniz_mpi.f -o $@
+
+$(OBJDIR)1_selez3d.o : $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_selez3d.f -o $@
+
+$(OBJDIR)1_ampli3d.o: $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_ampli3d.f -o $@
+
+$(OBJDIR)1_err_and_exit_mpi.o: $(SRC_EIK)
+	$(CC) $(FLAGS_CC) -c $(EIKDIR)1_err_and_exit_mpi.c -o $@
+
+$(OBJDIR)1_regrid3d.o : $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_regrid3d.f -o $@
+
+$(OBJDIR)1_tamp.o: $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_tamp.f -o $@
+
+$(OBJDIR)1_interptgt.o : $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_interptgt.f -o $@
+
+$(OBJDIR)1_iconal3d_mpi.o :  $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_iconal3d_mpi.f -o $@
+
+$(OBJDIR)1_execute_mpi.o :  $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_execute_mpi.f -o $@
+
+$(OBJDIR)1_execute_mpi.iope.o :  $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_execute_mpi.iope.f -o $@
+
+$(OBJDIR)1_dataoutput_mpi.o : $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_output_mpi.f -o $@
+
+$(OBJDIR)1_start_mpi.o : $(SRC_EIK)
+	$(CC) $(FLAGS_CC) -c $(EIKDIR)1_start_mpi.c -o $@
+
+$(OBJDIR)1_compute_work_mpi.o :  $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_compute_work_mpi.f -o $@
+
+$(OBJDIR)1_string_mpi.o :  $(SRC_EIK)
+	$(F77) $(FLAGS_F77) -c $(EIKDIR)1_string_mpi.f -o $@
+
+
+# dbMaker
+$(OBJDIR)2_reverse.o: $(SRC_DBM)
+	$(CC) $(FLAGS_CC) -c $(DBMDIR)2_reverse.c -o $@
+
+$(OBJDIR)2_execute.o :  $(SRC_DBM)
+	$(F77) $(FLAGS_F77) -c $(DBMDIR)2_execute.f -o $@
+
+$(OBJDIR)2_start.o : $(SRC_DBM)
+	$(CC) $(FLAGS_CC) -c $(DBMDIR)2_start.c -o $@
+
+# Migratore_mpi 
+$(OBJDIR)3_ibm2ieee.o: $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_ibm2ieee.f -o $@
+
+$(OBJDIR)3_prefiltro_mpi.o : $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_prefiltro_mpi.f -o $@
+
+$(OBJDIR)3_trovabin_mpi.o: $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_trovabin_mpi.f -o $@
+
+$(OBJDIR)3_execute_mpi.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_execute_mpi.f -o $@
+
+$(OBJDIR)3_input_mpi.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_input_mpi.f -o $@
+
+$(OBJDIR)3_compute_mpi.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_compute_mpi.f -o $@
+
+$(OBJDIR)3_compute_mpi.tg1.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_compute_mpi.tg1.f -o $@
+
+$(OBJDIR)3_compute_mpi.tg2.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT)  -c $(MIGDIR)3_compute_mpi.tg2.f -o $@
+
+$(OBJDIR)3_compute_mpi.tg3.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_compute_mpi.tg3.f -o $@
+
+$(OBJDIR)3_compute_mpi.tg4.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR)  $(ULTRA_OPT) -c $(MIGDIR)3_compute_mpi.tg4.f -o $@
+
+$(OBJDIR)3_output_mpi.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_output_mpi.f -o $@
+
+$(OBJDIR)3_string_mpi.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_string_mpi.f -o $@
+
+$(OBJDIR)3_eqtraces.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_eqtraces.f -o $@
+
+$(OBJDIR)3_readdbfile.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_readdbfile.f -o $@
+
+$(OBJDIR)3_deriv.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_deriv.f -o $@
+
+$(OBJDIR)3_firstdepth.o :  $(SRC_MIG)
+	$(F77) $(FLAGS_F77_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_firstdepth.f -o $@
+
+$(OBJDIR)3_start_mpi.o : $(SRC_MIG)
+	$(CC) $(FLAGS_CC_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_start_mpi.c -o $@
+
+$(OBJDIR)swap.o : $(SRCLIB)
+	$(CC) $(FLAGS_CC_PAR) $(ULTRA_OPT) -c $(SEGYDIR)swap.c -o $@
+
+$(OBJDIR)3_err_and_exit_mpi.o : $(SRC_MIG)
+	$(CC) $(FLAGS_CC_PAR) $(ULTRA_OPT) -c $(MIGDIR)3_err_and_exit_mpi.c -o $@
+
+# Sampler
+$(OBJDIR)4_execute.o : $(SRC_SMP) 
+	$(F77) $(FLAGS_F77) -c  $(SMPDIR)4_execute.f -o $@
+
+$(OBJDIR)4_start.o: $(SRC_SMP)
+	$(CC) $(FLAGS_CC) -c $(SMPDIR)4_start.c -o $@
+
+
+# Equalizzatore
+$(OBJDIR)5_pesoric.o : $(SRC_EQL) 
+	$(F77) $(FLAGS_F77) -c $(EQLDIR)5_pesoric.f -o $@
+
+$(OBJDIR)5_execute.o :  $(SRC_EQL)
+	$(F77) $(FLAGS_F77) -c $(EQLDIR)5_execute.f -o $@
+
+$(OBJDIR)5_start.o : $(SRC_EQL)
+	$(CC) $(FLAGS_CC) -c $(EQLDIR)5_start.c -o $@
+
+# dbSwapper
+$(OBJDIR)6_reverse.o: $(SRC_DBS)
+	$(CC) $(FLAGS_CC)  -c $(DBSDIR)6_reverse.c -o $@
+
+$(OBJDIR)6_start.o : $(SRC_DBS)
+	$(CC) $(FLAGS_CC)  -c $(DBSDIR)6_start.c -o $@
+
+# Rototraslatore
+$(OBJDIR)7_rototrasl_mpi.o: $(SRC_RTL)
+	$(CC) $(FLAGS_CC) -c $(RTLDIR)7_rototrasl_mpi.c  -o $@
+
+#Mig2Segy
+$(OBJDIR)8_mig2segy.o: $(SRC_END)
+	$(CC) $(FLAGS_CC) -c $(M2SDIR)8_mig2segy.c  -o $@
+
+#Time
+#$(OBJDIR)time_sgi.o: $(SRC_TIME)
+#	$(CC) $(FLAGS_CC)  -c $(TIMEDIR)time_sgi.c  -o $@
+
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+
+clean :
+	rm $(OBJDIR)*.o $(OBJDIR)*.x $(BINDIR)*.x
+
+
+#------------------------------------------------------------------------
+# FINE DEL MAKEFILE
+#------------------------------------------------------------------------
+

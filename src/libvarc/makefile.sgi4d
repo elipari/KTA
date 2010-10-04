@@ -1,0 +1,38 @@
+
+.SUFFIXES: .c .o .h
+
+ARCH = sgi4d
+
+#-----------------------------
+# SGI COMPILATION
+
+CC     = cc 
+CFLAGS = -c -64 -mips4 -O2
+
+AR     = ar -rv
+
+#-----------------------------
+
+#valori TARGET  { IBM | SGI | AlphaSC | LINUX}
+TARGET = SGI
+
+MYLIB=libvarc.a
+LIBDIR =../../../lib/${ARCH}
+INCDIR =../../../include/${ARCH}
+
+H_FILES =  ieee_ibm.h
+
+OBJC   =   esci.o \
+	   ieee_ibm.o
+
+
+${MYLIB}: ${OBJC}
+	${AR} $@ $?
+	mv ${MYLIB} ${LIBDIR}
+	cp ${H_FILES} ${INCDIR}
+
+.c.o:
+	${CC} -D$(TARGET) ${CFLAGS} $*.c
+
+clean: 
+	rm -f ${OBJC}

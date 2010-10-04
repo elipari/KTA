@@ -1,0 +1,58 @@
+# 
+# $Id: makefile.AlphaSC,v 1.1 2002/07/31 10:37:18 agimicv5 Exp $
+#
+# ------------------------------------------------------------------------
+#
+# AUTHOR:  F. Valentinotti
+# COMPANY: QSW, Ltd.
+#
+# ORIGINAL STARTING FILE: "makefile_QLC"
+#
+# DESCRIPTION: makefile developed for the AlphaSC
+#
+# ------------------------------------------------------------------------
+#
+
+.SUFFIXES: .c .o .h
+
+ARCH = AlphaSC
+
+#-----------------------------
+# AlphaSC COMPILATION 
+
+CC     = cc 
+CFLAGS = -c
+OPT    = -O2
+
+AR     = ar -rv
+
+#-----------------------------
+
+# FVA: No need of any precompilation variable
+
+#valori TARGET  { IBM | SGI | AlphaSC | LINUX}
+TARGET = AlphaSC
+
+
+MYLIB  = libvarc.a
+LIBDIR = ../../obj-mpi/
+INCDIR =../../../include/${ARCH}
+
+H_FILES =  ieee_ibm.h
+
+OBJC   =   esci.o \
+	   ieee_ibm.o
+
+
+${MYLIB}: ${OBJC}
+	${AR} $@ $?
+	mv ${MYLIB} ${LIBDIR}
+#	cp ${H_FILES} ${INCDIR}
+
+.c.o:
+	${CC} -D$(TARGET) ${CFLAGS} ${OPT} $*.c
+
+clean: 
+	rm -f ${OBJC}
+
+

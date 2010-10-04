@@ -1,0 +1,45 @@
+
+.SUFFIXES: .c .o .h
+
+ARCH = i686
+
+#-----------------------------
+# LINUX COMPILATION
+
+CC     = cc 
+CFLAGS = -c -O2
+
+AR     = ar -rv
+
+#-----------------------------
+
+#valori TARGET  { IBM | SGI | AlphaSC | LINUX}
+TARGET = LINUX
+
+
+MYLIB=libvarc.a
+LIBDIR =../../../lib/${ARCH}
+INCDIR =../../../include/${ARCH}
+
+H_FILES =  ieee_ibm.h
+
+OBJC   =   esci.o \
+	   ieee_ibm.o
+
+
+${MYLIB}: ${OBJC}
+	${AR} $@ $?
+	mv ${MYLIB} ${LIBDIR}
+	cp ${H_FILES} ${INCDIR}
+
+
+.c.o:
+	${CC} -D$(TARGET) ${CFLAGS} $*.c
+
+clean: 
+	rm -f ${OBJC}
+
+
+
+
+
